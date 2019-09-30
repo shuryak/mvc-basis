@@ -4,34 +4,26 @@ namespace application\core;
 
 class View {
 
-    public $route; // controller/action
-    public $routeArray; // array: controller and action
-    public $layout = 'default';
+    public static $route; // controller/action
+    public static $routeArray; // array: controller and action
+    public static $layout = 'default';
 
-    public function __construct($route) {
-
-        $this->routeArray = $route;
-        $this->route = $route['controller'].'/'.$route['action'];
-        
+    public static function load($route) {
+        self::$routeArray = $route;
+        self::$route = $route['controller'].'/'.$route['action'];
     }
 
-    public function show($title) {
-
-        $path = 'application/views/'.$this->route.'.php';
+    public static function show($title) {
+        $path = 'application/views/'.self::$route.'.php';
 
         if(file_exists($path)) {
-
             ob_start();
             require $path;
             $content = ob_get_clean();
-            require 'application/views/layouts/'.$this->layout.'.php';
-
+            require 'application/views/layouts/'.self::$layout.'.php';
         } else {
-            
             echo 'View not found.';
-
         }
-
     }
 
     public static function errorCode($code) {

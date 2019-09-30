@@ -2,11 +2,13 @@
 
 namespace application\models;
 use application\core\Model;
+use application\models\Users\Storage;
 
 class Users extends Model {
 
-    public function getText() {
-        return 'Lorem Ipsum';
+    // Storage::getText() shell
+    public static function getText() {
+        return Storage::getText();
     }
 
 }

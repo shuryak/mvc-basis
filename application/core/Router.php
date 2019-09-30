@@ -4,143 +4,96 @@ namespace application\core;
 
 class Router {
 
-    protected $routes = [];
-    protected $routesArray = [];
-    protected $params = [];
+    protected static $routes = [];
+    protected static $routesArray = [];
+    protected static $params = [];
 
-    public function addRoutes() {
-
+    public static function addRoutes() {
         $allowedRoutes = require 'application/config/routes.php';
         foreach($allowedRoutes as $route => $routeArray) {
-            $this->add($route, $routeArray);
+            self::add($route, $routeArray);
         }
-
     }
 
-    public function addApi() {
-
+    public static function addApi() {
         $allowedRoutes = require 'application/config/api.php';
         foreach($allowedRoutes as $route => $routeArray) {
-            $this->add($route, $routeArray);
+            self::add($route, $routeArray);
         }
-
     }
 
-    public function isApi($route) {
-
+    public static function isApi($route) {
         return preg_match('/api\/(.*)\.(.*)/', $route); // Incomplete regex
     }
 
-    public function add($route, $routeArray) {
+    public static function add($route, $routeArray) {
         $route = '#^'.$route.'$#';
-        $this->$routes[$route] = $routeArray;
+        self::$routes[$route] = $routeArray;
     }
 
-    public function matchRoute() {
+    public static function matchRoute() {
         $url = trim($_SERVER['REQUEST_URI'], '/');
-        
-        foreach($this->$routes as $route => $routeArray) {
-
+        foreach(self::$routes as $route => $routeArray) {
             if(preg_match($route, parse_url($url, PHP_URL_PATH))) {
-
-                $this->routesArray = $routeArray;
-                $this->params = parse_url($url, PHP_URL_QUERY) != NULL ? parse_url($url, PHP_URL_QUERY) : '';
+                self::$routesArray = $routeArray;
+                self::$params = parse_url($url, PHP_URL_QUERY) != NULL ? parse_url($url, PHP_URL_QUERY) : '';
                 return true;
-
             }
-
         }
-
         return false;
-
     }
 
-    public function matchApi() {
-
+    public static function matchApi() {
         $url = trim($_SERVER['REQUEST_URI'], '/api');
         list($controller, $method) = explode(".", $url);
-
-        foreach($this->$routes as $route => $routeArray) {
-
+        foreach(self::$routes as $route => $routeArray) {
             if(preg_match($route, parse_url($url, PHP_URL_PATH))) {
-
-                $this->routesArray = $routeArray;
-                $this->params = parse_url($url, PHP_URL_QUERY) != NULL ? $_GET : '';
+                self::$routesArray = $routeArray;
+                self::$params = parse_url($url, PHP_URL_QUERY) != NULL ? $_GET : '';
                 return true;
-
             }
-
         }
-
         return false;
-
     }
 
-    public function run() {
-
-        if($this->isApi(trim($_SERVER['REQUEST_URI'], '/'))) {
-            $this->addApi();
-            if($this->matchApi()) {
-                
-                $path = 'application\controllers\\'.ucfirst($this->routesArray['controller']).'Controller';
-
+    public static function run() {
+        if(self::isApi(trim($_SERVER['REQUEST_URI'], '/'))) {
+            self::addApi();
+            if(self::matchApi()) {
+                $path = 'application\controllers\\'.ucfirst(self::$routesArray['controller']).'Controller';
                 if(class_exists($path)) {
-
-                    $method = $this->routesArray['method'].'Api';
-
+                    $method = self::$routesArray['method'].'Api';
                     if(method_exists($path, $method)) {
-
-                        $controller = new $path($this->routesArray);
-                        $controller->$method($this->params);
-
+                        $path::load(self::$routesArray);
+                        $path::$method();
                     } else {
-
                         View::errorCode(404);
-
                     }
                 }
                 else {
-
                     View::errorCode(404);
-
                 }
             } else {
-
                 View::errorCode(404);
-
             }
         } else {
-
-            $this->addRoutes();
-            if($this->matchRoute()) {
-
-                $path = 'application\controllers\\'.ucfirst($this->routesArray['controller']).'Controller';
-
+            self::addRoutes();
+            if(self::matchRoute()) {
+                $path = 'application\controllers\\'.ucfirst(self::$routesArray['controller']).'Controller';
                 if(class_exists($path)) {
-                    
-                    $action = $this->routesArray['action'].'Action';
-
+                    $action = self::$routesArray['action'].'Action';
                     if(method_exists($path, $action)) {
-
-                        $controller = new $path($this->routesArray);
-                        $controller->$action();
-
+                        $path::load(self::$routesArray);
+                        $path::$action();
                     } else {
-
                         View::errorCode(404);
-                        
                     }
                 } else {
-
                     View::errorCode(404);
-                    
                 }
             } else {
-
                 View::errorCode(404);
-
             }
-
         }
     }
 }

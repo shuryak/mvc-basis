@@ -4,19 +4,21 @@ namespace application\core;
 
 abstract class Controller {
 
-    public $route;
+    public static $route;
+    public static $view;
+    public static $model;
 
-    public function __construct($route) {
-        $this->route = $route;
-        $this->view = new View($route);
-        $this->model = $this->loadModel($route['controller']);
+    public static function load($route) {
+        self::$route = $route;
+        self::$view = new View;
+        self::$view::load($route);
+        self::$model = self::loadModel($route['controller']);
     }
     
-    public function loadModel($name) {
+    public static function loadModel($name) {
         $path = 'application\models\\'.ucfirst($name);
         if(class_exists($path)) {
             return new $path;
         }
-
     }
 }
