@@ -10,8 +10,10 @@ abstract class Controller {
 
     public static function load($route) {
         self::$route = $route;
-        self::$view = new View;
-        self::$view::load($route);
+        if(isset($route['action'])) {
+            self::$view = new View;
+            self::$view::load($route);
+        }
         self::$model = self::loadModel($route['controller']);
     }
     

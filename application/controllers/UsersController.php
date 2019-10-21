@@ -9,7 +9,7 @@ class UsersController extends Controller {
         self::$view::show('PAGE.');
     }
 
-    public function getApi() {
+    public static function getApi() {
         header('Content-Type: application/json');
         echo self::$model::getText();
         // It is necessary to generate JSON and return it, having make a lot of checks.
